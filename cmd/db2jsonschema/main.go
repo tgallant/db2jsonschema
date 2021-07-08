@@ -19,32 +19,57 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-package cmd
+package main
 
 import (
 	"fmt"
 	"os"
-	"github.com/spf13/cobra"
 
 	homedir "github.com/mitchellh/go-homedir"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/tgallant/db2jsonschema"
 )
 
-var cfgFile string
+var (
+	cfgFile string
+	driver  string
+	dburl   string
+	format  string
+	outdir  string
+)
+
+func HandleGenerate(cmd *cobra.Command, args []string) {
+	if len(driver) == 0 || len(dburl) == 0 {
+		cmd.Help()
+		return
+	}
+	req := &db2jsonschema.Request{
+		Driver:     driver,
+		DataSource: dburl,
+		Format:     format,
+		Outdir:     outdir,
+	}
+	err := req.Perform()
+	if err != nil {
+		log.Error(err)
+		os.Exit(1)
+		return
+	}
+}
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "db2jsonschema",
-	Short: "A brief description of your application",
+	Short: "Generate JSON Schema definitions from database tables",
 	Long: `A longer description that spans multiple lines and likely contains
 examples and usage of using your application. For example:
 
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	Run: HandleGenerate,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -64,7 +89,10 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.Flags().StringVar(&driver, "driver", "", "The DB Driver")
+	rootCmd.Flags().StringVar(&dburl, "dburl", "", "The DB URL")
+	rootCmd.Flags().StringVar(&format, "format", "", "The output format (json,yaml)")
+	rootCmd.Flags().StringVar(&outdir, "outdir", "", "The output directory")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -88,4 +116,8 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
 	}
+}
+
+func main() {
+	Execute()
 }
