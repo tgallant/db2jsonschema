@@ -31,7 +31,13 @@ var expectedTables = map[string]bool{
 }
 
 func TestMain(m *testing.M) {
-	tempDir = os.TempDir()
+	newTestDir, err := os.MkdirTemp(os.TempDir(), "db2jsonschema*")
+	fmt.Println(tempDir)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	tempDir = newTestDir
 	tempFile, err := os.CreateTemp(tempDir, "test.*.db")
 	if err != nil {
 		fmt.Println(err)
@@ -44,6 +50,10 @@ func TestMain(m *testing.M) {
 		return
 	}
 	m.Run()
+	err = os.RemoveAll(tempDir)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func TestYAMLOutput(t *testing.T) {
@@ -106,4 +116,59 @@ func TestJSONOutput(t *testing.T) {
 		assert.Nilf(t, err, "unmarshalling file %s should succeed", filename)
 		assert.NotEmptyf(t, schema.Properties, "the schema %s should have properties")
 	}
+}
+
+func TestOutputWithIncludes(t *testing.T) {
+	schemaPath := filepath.Join(tempDir, "schemas_with_includes")
+	err := os.MkdirAll(schemaPath, os.ModePerm)
+	assert.Nilf(t, err, "creating the dir %s should succeed", schemaPath)
+	req := &db2jsonschema.Request{
+		Driver:     testDB.Driver,
+		DataSource: testDB.DataSource,
+		Format:     "json",
+		Outdir:     schemaPath,
+		Includes:   []string{"artists", "tracks"},
+	}
+	err = req.Perform()
+	assert.Nil(t, err, "performing the request should succeed")
+	dir, err := os.ReadDir(schemaPath)
+	assert.Nilf(t, err, "reading dir %s should succeed", schemaPath)
+	assert.Equal(t, 2, len(dir), "there should be 2 schemas")
+}
+
+func TestOutputWithExcludes(t *testing.T) {
+	schemaPath := filepath.Join(tempDir, "schemas_with_excludes")
+	err := os.MkdirAll(schemaPath, os.ModePerm)
+	assert.Nilf(t, err, "creating the dir %s should succeed", schemaPath)
+	req := &db2jsonschema.Request{
+		Driver:     testDB.Driver,
+		DataSource: testDB.DataSource,
+		Format:     "json",
+		Outdir:     schemaPath,
+		Excludes:   []string{"artists", "tracks"},
+	}
+	err = req.Perform()
+	assert.Nil(t, err, "performing the request should succeed")
+	dir, err := os.ReadDir(schemaPath)
+	assert.Nilf(t, err, "reading dir %s should succeed", schemaPath)
+	assert.Equal(t, 3, len(dir), "there should be 3 schemas")
+}
+
+func TestOutputWithIncludesAndExcludes(t *testing.T) {
+	schemaPath := filepath.Join(tempDir, "schemas_with_includes_and_excludes")
+	err := os.MkdirAll(schemaPath, os.ModePerm)
+	assert.Nilf(t, err, "creating the dir %s should succeed", schemaPath)
+	req := &db2jsonschema.Request{
+		Driver:     testDB.Driver,
+		DataSource: testDB.DataSource,
+		Format:     "json",
+		Outdir:     schemaPath,
+		Includes:   []string{"artists", "tracks"},
+		Excludes:   []string{"artists", "tracks"},
+	}
+	err = req.Perform()
+	assert.Nil(t, err, "performing the request should succeed")
+	dir, err := os.ReadDir(schemaPath)
+	assert.Nilf(t, err, "reading dir %s should succeed", schemaPath)
+	assert.Equal(t, 0, len(dir), "there should be 0 schemas")
 }

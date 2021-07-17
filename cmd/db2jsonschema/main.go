@@ -33,11 +33,13 @@ import (
 )
 
 var (
-	cfgFile string
-	driver  string
-	dburl   string
-	format  string
-	outdir  string
+	cfgFile  string
+	driver   string
+	dburl    string
+	format   string
+	outdir   string
+	includes []string
+	excludes []string
 )
 
 func HandleGenerate(cmd *cobra.Command, args []string) {
@@ -50,6 +52,8 @@ func HandleGenerate(cmd *cobra.Command, args []string) {
 		DataSource: dburl,
 		Format:     format,
 		Outdir:     outdir,
+		Includes:   includes,
+		Excludes:   excludes,
 	}
 	err := req.Perform()
 	if err != nil {
@@ -93,6 +97,8 @@ func init() {
 	rootCmd.Flags().StringVar(&dburl, "dburl", "", "The DB URL")
 	rootCmd.Flags().StringVar(&format, "format", "", "The output format (json,yaml)")
 	rootCmd.Flags().StringVar(&outdir, "outdir", "", "The output directory")
+	rootCmd.Flags().StringSliceVarP(&includes, "include", "", []string{}, "The tables to include")
+	rootCmd.Flags().StringSliceVarP(&excludes, "exclude", "", []string{}, "The tables to exclude")
 }
 
 // initConfig reads in config file and ENV variables if set.

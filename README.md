@@ -74,6 +74,40 @@ db2jsonschema \
   --outdir ./schemas
 ```
 
+There are also `--include` and `--exclude` flags available to control which
+tables will be used for schema generation.
+
+```bash
+db2jsonschema \
+  --driver sqlite3 \
+  --dburl ./exotic_birds.db \
+  --include Birds
+  --format yaml \
+  --outdir ./schemas
+```
+
+To pass in multiple `--include` or `--exclude` values either provide a comma
+separated list or use multiple flags, one for each value.
+
+```bash
+db2jsonschema \
+  --driver sqlite3 \
+  --dburl ./exotic_birds.db \
+  --exclude Locations,BirdWatchers
+  --format yaml \
+  --outdir ./schemas
+```
+
+```bash
+db2jsonschema \
+  --driver sqlite3 \
+  --dburl ./exotic_birds.db \
+  --exclude Locations
+  --exclude BirdWatchers
+  --format yaml \
+  --outdir ./schemas
+```
+
 ### Library
 
 Here is an example of importing `db2jsonschema` as a library and its basic

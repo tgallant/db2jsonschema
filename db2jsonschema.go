@@ -3,14 +3,48 @@ package db2jsonschema
 import (
 	log "github.com/sirupsen/logrus"
 	"github.com/tgallant/db2jsonschema/database"
+	"github.com/tgallant/db2jsonschema/internal/db"
 	"github.com/tgallant/db2jsonschema/internal/generator"
 )
+
+func MakeLookupMap(items []string) map[string]bool {
+	var lookupMap = make(map[string]bool)
+	for _, item := range items {
+		lookupMap[item] = true
+	}
+	return lookupMap
+}
 
 type Request struct {
 	Driver     string
 	DataSource string
 	Format     string
 	Outdir     string
+	Includes   []string
+	Excludes   []string
+}
+
+func (r *Request) FilterTables(tables []*db.Table) []*db.Table {
+	hasIncludes := len(r.Includes) > 0
+	hasExcludes := len(r.Excludes) > 0
+	if !hasIncludes && !hasExcludes {
+		return tables
+	}
+	var filteredTables []*db.Table
+	includesMap := MakeLookupMap(r.Includes)
+	excludesMap := MakeLookupMap(r.Excludes)
+	for _, t := range tables {
+		_, matchesInclude := includesMap[t.Name]
+		_, matchesExclude := excludesMap[t.Name]
+		if hasIncludes && !matchesInclude {
+			continue
+		}
+		if hasExcludes && matchesExclude {
+			continue
+		}
+		filteredTables = append(filteredTables, t)
+	}
+	return filteredTables
 }
 
 func (r *Request) Perform() error {
@@ -29,8 +63,9 @@ func (r *Request) Perform() error {
 	if err != nil {
 		return err
 	}
+	filteredTables := r.FilterTables(tables)
 	request := generator.Request{
-		Tables: tables,
+		Tables: filteredTables,
 		Format: r.Format,
 		Outdir: r.Outdir,
 	}
