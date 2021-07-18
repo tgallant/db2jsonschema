@@ -30,6 +30,7 @@ func FormatYAML(schema interface{}) ([]byte, error) {
 }
 
 const (
+	defaultFormat     = "json"
 	defaultSchemaType = "https://json-schema.org/draft/2020-12/schema"
 	defaultIdTemplate = "{{ .Name }}.{{ .Format }}"
 )
@@ -40,6 +41,13 @@ type Request struct {
 	Outdir     string
 	SchemaType string
 	IdTemplate string
+}
+
+func (r *Request) GetFormat() string {
+	if len(r.Format) > 0 {
+		return r.Format
+	}
+	return defaultFormat
 }
 
 func (r *Request) GetSchemaType() string {
@@ -64,7 +72,7 @@ type IdTemplateOptions struct {
 func (r *Request) FormatIdTemplate(name string) (string, error) {
 	opts := &IdTemplateOptions{
 		Name:   name,
-		Format: r.Format,
+		Format: r.GetFormat(),
 	}
 	idTemplate, err := template.New("idTemplate").Parse(r.GetIdTemplate())
 	if err != nil {
@@ -118,13 +126,14 @@ func (r *Request) MakeSchema(tables []*schema.TableProperties) ([]*schema.JSONSc
 }
 
 func (r *Request) FormatSchema(schema interface{}) ([]byte, error) {
-	switch r.Format {
+	format := r.GetFormat()
+	switch format {
 	case "json":
 		return FormatJSON(schema)
 	case "yaml":
 		return FormatYAML(schema)
 	default:
-		return nil, fmt.Errorf("Unknown format: %s", r.Format)
+		return nil, fmt.Errorf("Unknown format: %s", format)
 	}
 }
 
@@ -155,7 +164,7 @@ func (r *Request) HandleDirectoryOutput(tables []*schema.TableProperties) error 
 		if err != nil {
 			return err
 		}
-		filename := fmt.Sprintf("%s.%s", s.Title, r.Format)
+		filename := fmt.Sprintf("%s.%s", s.Title, r.GetFormat())
 		outputPath := filepath.Join(r.Outdir, filename)
 		log.Infof("Writing to %s", outputPath)
 		err = os.WriteFile(outputPath, res, 0666)
