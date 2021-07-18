@@ -2,58 +2,38 @@ package generator
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/tgallant/db2jsonschema/internal/db"
+	"github.com/tgallant/db2jsonschema/internal/schema"
 	"testing"
 )
 
-func makeDbTable() *db.Table {
-	var fields []*db.Field
-	testField := db.Field{
+func makeDbTable() *schema.Table {
+	var fields []*schema.Field
+	testField := schema.Field{
 		Name: "exampleField",
-		Type: &db.FieldType{
+		Type: &schema.FieldType{
 			Name:   "string",
 			Format: "",
 		},
 	}
-	testField2 := db.Field{
+	testField2 := schema.Field{
 		Name: "UserId",
-		Type: &db.FieldType{
+		Type: &schema.FieldType{
 			Name:   "number",
 			Format: "",
 		},
 	}
 	fields = append(fields, &testField, &testField2)
-	table := &db.Table{
+	table := &schema.Table{
 		Name:   "Testing",
 		Fields: fields,
 	}
 	return table
 }
 
-func TestMakeTableProperties(t *testing.T) {
-	table := makeDbTable()
-	p := MakeTableProperties(table)
-	assert.Equal(t, "Testing", p.Name, "name should be `Testing`")
-	assert.Equal(t, 2, len(p.Properties), "should have 2 properties")
-}
-
-func TestMakePropertiesMap(t *testing.T) {
-	var props []*JSONProperty
-	prop := &JSONProperty{
-		Name: "email",
-		Type: "string",
-	}
-	props = append(props, prop)
-	m := MakePropertiesMap(props)
-	assert.Equal(t, 1, len(m), "should have 1 property")
-	p := m["email"]
-	assert.Equal(t, "string", p.Type, "type should be `string`")
-}
-
 func TestMakeDefinitionsDoc(t *testing.T) {
-	var props []*TableProperties
+	var props []*schema.TableProperties
 	table := makeDbTable()
-	p := MakeTableProperties(table)
+	p := schema.MakeTableProperties(table)
 	props = append(props, p)
 	r := &Request{}
 	doc, err := r.MakeDefinitionsDoc(props)
@@ -66,9 +46,9 @@ func TestMakeDefinitionsDoc(t *testing.T) {
 }
 
 func TestMakeDefinitionsDocWithIdTemplate(t *testing.T) {
-	var props []*TableProperties
+	var props []*schema.TableProperties
 	table := makeDbTable()
-	p := MakeTableProperties(table)
+	p := schema.MakeTableProperties(table)
 	props = append(props, p)
 	idValue := "https://example.com/schemas/test.json"
 	r := &Request{
@@ -85,9 +65,9 @@ func TestMakeDefinitionsDocWithIdTemplate(t *testing.T) {
 }
 
 func TestMakeDefinitionsDocWithSchemaType(t *testing.T) {
-	var props []*TableProperties
+	var props []*schema.TableProperties
 	table := makeDbTable()
-	p := MakeTableProperties(table)
+	p := schema.MakeTableProperties(table)
 	props = append(props, p)
 	schemaValue := "https://example.com/schema"
 	r := &Request{
@@ -104,7 +84,7 @@ func TestMakeDefinitionsDocWithSchemaType(t *testing.T) {
 }
 
 func TestPerform(t *testing.T) {
-	var tables []*db.Table
+	var tables []*schema.Table
 	table := makeDbTable()
 	tables = append(tables, table)
 	request := Request{

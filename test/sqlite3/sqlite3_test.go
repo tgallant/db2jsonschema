@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tgallant/db2jsonschema"
-	"github.com/tgallant/db2jsonschema/internal/generator"
+	"github.com/tgallant/db2jsonschema/internal/schema"
 	"github.com/tgallant/db2jsonschema/test"
 	"gopkg.in/yaml.v2"
 )
@@ -77,7 +77,7 @@ func TestYAMLOutput(t *testing.T) {
 		_, exists := expectedTables[schemaName]
 		msg := fmt.Sprintf("The %s schema should exist", schemaName)
 		assert.True(t, exists, msg)
-		schema := &generator.JSONSchema{}
+		schema := &schema.JSONSchema{}
 		fullPath := filepath.Join(schemaPath, filename)
 		contents, err := os.ReadFile(fullPath)
 		assert.Nilf(t, err, "reading file %s should succeed", filename)
@@ -108,7 +108,7 @@ func TestJSONOutput(t *testing.T) {
 		_, exists := expectedTables[schemaName]
 		msg := fmt.Sprintf("The %s schema should exist", schemaName)
 		assert.True(t, exists, msg)
-		schema := &generator.JSONSchema{}
+		schema := &schema.JSONSchema{}
 		fullPath := filepath.Join(schemaPath, filename)
 		contents, err := os.ReadFile(fullPath)
 		assert.Nilf(t, err, "reading file %s should succeed", filename)

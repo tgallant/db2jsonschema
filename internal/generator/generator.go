@@ -9,60 +9,9 @@ import (
 	"text/template"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/tgallant/db2jsonschema/internal/db"
+	"github.com/tgallant/db2jsonschema/internal/schema"
 	"gopkg.in/yaml.v2"
 )
-
-type JSONProperty struct {
-	Name   string `json:"name" yaml:"name"`
-	Type   string `json:"type" yaml:"type"`
-	Format string `json:"format,omitempty" yaml:"format,omitempty"`
-}
-
-type JSONSchema struct {
-	Schema     string                   `json:"$schema" yaml:"$schema"`
-	Id         string                   `json:"$id" yaml:"$id"`
-	Title      string                   `json:"title" yaml:"title"`
-	Type       string                   `json:"type" yaml:"type"`
-	Properties map[string]*JSONProperty `json:"properties" yaml:"properties"`
-}
-
-type DefinitionsDocument struct {
-	Schema      string                              `json:"$schema" yaml:"$schema"`
-	Id          string                              `json:"$id" yaml:"$id"`
-	Title       string                              `json:"title" yaml:"title"`
-	Definitions map[string]map[string]*JSONProperty `json:"definitions" yaml:"definitions"`
-}
-
-type TableProperties struct {
-	Name       string
-	Properties []*JSONProperty
-}
-
-func MakeTableProperties(t *db.Table) *TableProperties {
-	var properties []*JSONProperty
-	for _, field := range t.Fields {
-		prop := &JSONProperty{
-			Name:   field.Name,
-			Type:   field.Type.Name,
-			Format: field.Type.Format,
-		}
-		properties = append(properties, prop)
-	}
-	tableProperties := &TableProperties{
-		Name:       t.Name,
-		Properties: properties,
-	}
-	return tableProperties
-}
-
-func MakePropertiesMap(props []*JSONProperty) map[string]*JSONProperty {
-	var propsMap = make(map[string]*JSONProperty)
-	for _, p := range props {
-		propsMap[p.Name] = p
-	}
-	return propsMap
-}
 
 func FormatJSON(schema interface{}) ([]byte, error) {
 	res, err := json.MarshalIndent(schema, "", "  ")
@@ -86,7 +35,7 @@ const (
 )
 
 type Request struct {
-	Tables     []*db.Table
+	Tables     []*schema.Table
 	Format     string
 	Outdir     string
 	SchemaType string
@@ -129,17 +78,17 @@ func (r *Request) FormatIdTemplate(name string) (string, error) {
 	return idValue.String(), nil
 }
 
-func (r *Request) MakeDefinitionsDoc(tables []*TableProperties) (*DefinitionsDocument, error) {
-	var definitions = make(map[string]map[string]*JSONProperty)
+func (r *Request) MakeDefinitionsDoc(tables []*schema.TableProperties) (*schema.DefinitionsDocument, error) {
+	var definitions = make(map[string]map[string]*schema.JSONProperty)
 	for _, t := range tables {
-		props := MakePropertiesMap(t.Properties)
+		props := schema.MakePropertiesMap(t.Properties)
 		definitions[t.Name] = props
 	}
 	schemaId, err := r.FormatIdTemplate("definitions")
 	if err != nil {
-		return &DefinitionsDocument{}, err
+		return &schema.DefinitionsDocument{}, err
 	}
-	doc := &DefinitionsDocument{
+	doc := &schema.DefinitionsDocument{
 		Schema:      r.GetSchemaType(),
 		Id:          schemaId,
 		Title:       "Example",
@@ -148,24 +97,24 @@ func (r *Request) MakeDefinitionsDoc(tables []*TableProperties) (*DefinitionsDoc
 	return doc, nil
 }
 
-func (r *Request) MakeSchemas(tables []*TableProperties) ([]*JSONSchema, error) {
-	var schemas []*JSONSchema
+func (r *Request) MakeSchema(tables []*schema.TableProperties) ([]*schema.JSONSchema, error) {
+	var jsonSchemas []*schema.JSONSchema
 	for _, t := range tables {
-		properties := MakePropertiesMap(t.Properties)
+		properties := schema.MakePropertiesMap(t.Properties)
 		schemaId, err := r.FormatIdTemplate(t.Name)
 		if err != nil {
-			return []*JSONSchema{}, err
+			return []*schema.JSONSchema{}, err
 		}
-		schema := &JSONSchema{
+		jsonSchema := &schema.JSONSchema{
 			Schema:     r.GetSchemaType(),
 			Id:         schemaId,
 			Title:      t.Name,
 			Type:       "object",
 			Properties: properties,
 		}
-		schemas = append(schemas, schema)
+		jsonSchemas = append(jsonSchemas, jsonSchema)
 	}
-	return schemas, nil
+	return jsonSchemas, nil
 }
 
 func (r *Request) FormatSchema(schema interface{}) ([]byte, error) {
@@ -179,7 +128,7 @@ func (r *Request) FormatSchema(schema interface{}) ([]byte, error) {
 	}
 }
 
-func (r *Request) HandleStandardOutput(tables []*TableProperties) error {
+func (r *Request) HandleStandardOutput(tables []*schema.TableProperties) error {
 	doc, err := r.MakeDefinitionsDoc(tables)
 	if err != nil {
 		return err
@@ -192,16 +141,16 @@ func (r *Request) HandleStandardOutput(tables []*TableProperties) error {
 	return nil
 }
 
-func (r *Request) HandleDirectoryOutput(tables []*TableProperties) error {
+func (r *Request) HandleDirectoryOutput(tables []*schema.TableProperties) error {
 	err := os.MkdirAll(r.Outdir, os.ModePerm)
 	if err != nil {
 		return err
 	}
-	schemas, err := r.MakeSchemas(tables)
+	schema, err := r.MakeSchema(tables)
 	if err != nil {
 		return err
 	}
-	for _, s := range schemas {
+	for _, s := range schema {
 		res, err := r.FormatSchema(s)
 		if err != nil {
 			return err
@@ -218,9 +167,9 @@ func (r *Request) HandleDirectoryOutput(tables []*TableProperties) error {
 }
 
 func (r *Request) Perform() error {
-	var tables []*TableProperties
+	var tables []*schema.TableProperties
 	for _, table := range r.Tables {
-		properties := MakeTableProperties(table)
+		properties := schema.MakeTableProperties(table)
 		tables = append(tables, properties)
 	}
 	if len(r.Outdir) > 0 {

@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	"github.com/tgallant/db2jsonschema/database/sqlite3"
-	"github.com/tgallant/db2jsonschema/internal/db"
+	"github.com/tgallant/db2jsonschema/internal/schema"
 )
 
 type Driver interface {
-	ReadTables() ([]*db.Table, error)
+	ReadTables() ([]*schema.Table, error)
 }
 
 type ConnectionInfo struct {

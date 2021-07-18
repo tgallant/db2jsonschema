@@ -8,7 +8,7 @@ import (
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/alecthomas/participle/v2/lexer/stateful"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/tgallant/db2jsonschema/internal/db"
+	"github.com/tgallant/db2jsonschema/internal/schema"
 )
 
 type Driver struct {
@@ -42,24 +42,24 @@ type SQLiteConstraint struct {
 }
 
 var (
-	typesMap = map[string]*db.FieldType{
-		"int": &db.FieldType{
+	typesMap = map[string]*schema.FieldType{
+		"int": &schema.FieldType{
 			Name:   "number",
 			Format: "",
 		},
-		"integer": &db.FieldType{
+		"integer": &schema.FieldType{
 			Name:   "number",
 			Format: "",
 		},
-		"varchar": &db.FieldType{
+		"varchar": &schema.FieldType{
 			Name:   "string",
 			Format: "",
 		},
-		"text": &db.FieldType{
+		"text": &schema.FieldType{
 			Name:   "string",
 			Format: "",
 		},
-		"datetime": &db.FieldType{
+		"datetime": &schema.FieldType{
 			Name:   "string",
 			Format: "date-time",
 		},
@@ -82,10 +82,10 @@ var (
 	)
 )
 
-func MapSQLiteType(t string) (*db.FieldType, error) {
+func MapSQLiteType(t string) (*schema.FieldType, error) {
 	schemaType, exists := typesMap[t]
 	if !exists {
-		return &db.FieldType{}, fmt.Errorf("Unknown data type: %s", t)
+		return &schema.FieldType{}, fmt.Errorf("Unknown data type: %s", t)
 	}
 	return schemaType, nil
 }
@@ -107,25 +107,25 @@ func SelectTables(conn *sql.DB) ([]*SQLiteTable, error) {
 	return tables, nil
 }
 
-func ParseTableSQL(tableSQL string) (*db.Table, error) {
+func ParseTableSQL(tableSQL string) (*schema.Table, error) {
 	createTable := &SQLiteCreateTable{}
 	err := parser.ParseString("", tableSQL, createTable)
 	if err != nil {
-		return &db.Table{}, err
+		return &schema.Table{}, err
 	}
-	var fields []*db.Field
+	var fields []*schema.Field
 	for _, fieldExpression := range createTable.FieldExpressions {
 		schemaType, err := MapSQLiteType(fieldExpression.Type)
 		if err != nil {
-			return &db.Table{}, err
+			return &schema.Table{}, err
 		}
-		field := &db.Field{
+		field := &schema.Field{
 			Name: fieldExpression.Name,
 			Type: schemaType,
 		}
 		fields = append(fields, field)
 	}
-	table := &db.Table{
+	table := &schema.Table{
 		Name:        createTable.TableName,
 		Fields:      fields,
 		PrimaryKeys: createTable.PrimaryKeys,
@@ -133,7 +133,7 @@ func ParseTableSQL(tableSQL string) (*db.Table, error) {
 	return table, nil
 }
 
-func (d *Driver) ReadTables() ([]*db.Table, error) {
+func (d *Driver) ReadTables() ([]*schema.Table, error) {
 	conn, err := sql.Open("sqlite3", d.DataSource)
 	if err != nil {
 		return nil, err
@@ -143,7 +143,7 @@ func (d *Driver) ReadTables() ([]*db.Table, error) {
 	if err != nil {
 		return nil, err
 	}
-	var parsedTables []*db.Table
+	var parsedTables []*schema.Table
 	for _, table := range tables {
 		parsedTable, err := ParseTableSQL(table.sql)
 		if err != nil {

@@ -3,8 +3,8 @@ package db2jsonschema
 import (
 	log "github.com/sirupsen/logrus"
 	"github.com/tgallant/db2jsonschema/database"
-	"github.com/tgallant/db2jsonschema/internal/db"
 	"github.com/tgallant/db2jsonschema/internal/generator"
+	"github.com/tgallant/db2jsonschema/internal/schema"
 )
 
 func MakeLookupMap(items []string) map[string]bool {
@@ -26,13 +26,13 @@ type Request struct {
 	Excludes   []string
 }
 
-func (r *Request) FilterTables(tables []*db.Table) []*db.Table {
+func (r *Request) FilterTables(tables []*schema.Table) []*schema.Table {
 	hasIncludes := len(r.Includes) > 0
 	hasExcludes := len(r.Excludes) > 0
 	if !hasIncludes && !hasExcludes {
 		return tables
 	}
-	var filteredTables []*db.Table
+	var filteredTables []*schema.Table
 	includesMap := MakeLookupMap(r.Includes)
 	excludesMap := MakeLookupMap(r.Excludes)
 	for _, t := range tables {
