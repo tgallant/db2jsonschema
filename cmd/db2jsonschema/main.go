@@ -33,13 +33,15 @@ import (
 )
 
 var (
-	cfgFile  string
-	driver   string
-	dburl    string
-	format   string
-	outdir   string
-	includes []string
-	excludes []string
+	cfgFile    string
+	driver     string
+	dburl      string
+	format     string
+	outdir     string
+	schematype string
+	idtemplate string
+	includes   []string
+	excludes   []string
 )
 
 func HandleGenerate(cmd *cobra.Command, args []string) {
@@ -52,6 +54,8 @@ func HandleGenerate(cmd *cobra.Command, args []string) {
 		DataSource: dburl,
 		Format:     format,
 		Outdir:     outdir,
+		SchemaType: schematype,
+		IdTemplate: idtemplate,
 		Includes:   includes,
 		Excludes:   excludes,
 	}
@@ -97,6 +101,8 @@ func init() {
 	rootCmd.Flags().StringVar(&dburl, "dburl", "", "The DB URL")
 	rootCmd.Flags().StringVar(&format, "format", "", "The output format (json,yaml)")
 	rootCmd.Flags().StringVar(&outdir, "outdir", "", "The output directory")
+	rootCmd.Flags().StringVar(&schematype, "schematype", "", "The $schema value for the generated schemas")
+	rootCmd.Flags().StringVar(&idtemplate, "idtemplate", "", "A template string for the $id value for the generated schemas")
 	rootCmd.Flags().StringSliceVarP(&includes, "include", "", []string{}, "The tables to include")
 	rootCmd.Flags().StringSliceVarP(&excludes, "exclude", "", []string{}, "The tables to exclude")
 }

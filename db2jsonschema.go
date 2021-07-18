@@ -20,6 +20,8 @@ type Request struct {
 	DataSource string
 	Format     string
 	Outdir     string
+	SchemaType string
+	IdTemplate string
 	Includes   []string
 	Excludes   []string
 }
@@ -65,9 +67,11 @@ func (r *Request) Perform() error {
 	}
 	filteredTables := r.FilterTables(tables)
 	request := generator.Request{
-		Tables: filteredTables,
-		Format: r.Format,
-		Outdir: r.Outdir,
+		Tables:     filteredTables,
+		Format:     r.Format,
+		Outdir:     r.Outdir,
+		SchemaType: r.SchemaType,
+		IdTemplate: r.IdTemplate,
 	}
 	log.WithFields(log.Fields{
 		"generatorRequest": request,

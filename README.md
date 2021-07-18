@@ -108,6 +108,22 @@ db2jsonschema \
   --outdir ./schemas
 ```
 
+The `--schematype` and `--idtemplate` options are available to modify the
+`$schema` and `$id` values added to each schema.
+
+`--idtemplate` is a template string which passes in values for Name and Format.
+These values can be used or ignored as necessary.
+
+```bash
+db2jsonschema \
+  --driver sqlite3 \
+  --dburl ./exotic_birds.db \
+  --schematype https://json-schema.org/draft/2020-12/schema \
+  --idtemplate https://example.com/schemas/{{ .Name }}.{{ .Format }}
+  --format yaml \
+  --outdir ./schemas
+```
+
 ### Library
 
 Here is an example of importing `db2jsonschema` as a library and its basic

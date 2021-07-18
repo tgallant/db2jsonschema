@@ -1,10 +1,12 @@
 package generator
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+	"text/template"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/tgallant/db2jsonschema/internal/db"
@@ -62,37 +64,6 @@ func MakePropertiesMap(props []*JSONProperty) map[string]*JSONProperty {
 	return propsMap
 }
 
-func MakeDefinitionsDoc(tables []*TableProperties) *DefinitionsDocument {
-	var definitions = make(map[string]map[string]*JSONProperty)
-	for _, t := range tables {
-		props := MakePropertiesMap(t.Properties)
-		definitions[t.Name] = props
-	}
-	doc := &DefinitionsDocument{
-		Schema:      "https://json-schema.org/draft/2020-12/schema",
-		Id:          "https://example.com/product.schema.json",
-		Title:       "Example",
-		Definitions: definitions,
-	}
-	return doc
-}
-
-func MakeSchemas(tables []*TableProperties) []*JSONSchema {
-	var schemas []*JSONSchema
-	for _, t := range tables {
-		properties := MakePropertiesMap(t.Properties)
-		schema := &JSONSchema{
-			Schema:     "https://json-schema.org/draft/2020-12/schema",
-			Id:         "https://example.com/product.schema.json",
-			Title:      t.Name,
-			Type:       "object",
-			Properties: properties,
-		}
-		schemas = append(schemas, schema)
-	}
-	return schemas
-}
-
 func FormatJSON(schema interface{}) ([]byte, error) {
 	res, err := json.MarshalIndent(schema, "", "  ")
 	if err != nil {
@@ -109,10 +80,92 @@ func FormatYAML(schema interface{}) ([]byte, error) {
 	return res, nil
 }
 
+const (
+	defaultSchemaType = "https://json-schema.org/draft/2020-12/schema"
+	defaultIdTemplate = "{{ .Name }}.{{ .Format }}"
+)
+
 type Request struct {
-	Tables []*db.Table
+	Tables     []*db.Table
+	Format     string
+	Outdir     string
+	SchemaType string
+	IdTemplate string
+}
+
+func (r *Request) GetSchemaType() string {
+	if len(r.SchemaType) > 0 {
+		return r.SchemaType
+	}
+	return defaultSchemaType
+}
+
+func (r *Request) GetIdTemplate() string {
+	if len(r.IdTemplate) > 0 {
+		return r.IdTemplate
+	}
+	return defaultIdTemplate
+}
+
+type IdTemplateOptions struct {
+	Name   string
 	Format string
-	Outdir string
+}
+
+func (r *Request) FormatIdTemplate(name string) (string, error) {
+	opts := &IdTemplateOptions{
+		Name:   name,
+		Format: r.Format,
+	}
+	idTemplate, err := template.New("idTemplate").Parse(r.GetIdTemplate())
+	if err != nil {
+		return "", err
+	}
+	var idValue bytes.Buffer
+	err = idTemplate.Execute(&idValue, opts)
+	if err != nil {
+		return "", err
+	}
+	return idValue.String(), nil
+}
+
+func (r *Request) MakeDefinitionsDoc(tables []*TableProperties) (*DefinitionsDocument, error) {
+	var definitions = make(map[string]map[string]*JSONProperty)
+	for _, t := range tables {
+		props := MakePropertiesMap(t.Properties)
+		definitions[t.Name] = props
+	}
+	schemaId, err := r.FormatIdTemplate("definitions")
+	if err != nil {
+		return &DefinitionsDocument{}, err
+	}
+	doc := &DefinitionsDocument{
+		Schema:      r.GetSchemaType(),
+		Id:          schemaId,
+		Title:       "Example",
+		Definitions: definitions,
+	}
+	return doc, nil
+}
+
+func (r *Request) MakeSchemas(tables []*TableProperties) ([]*JSONSchema, error) {
+	var schemas []*JSONSchema
+	for _, t := range tables {
+		properties := MakePropertiesMap(t.Properties)
+		schemaId, err := r.FormatIdTemplate(t.Name)
+		if err != nil {
+			return []*JSONSchema{}, err
+		}
+		schema := &JSONSchema{
+			Schema:     r.GetSchemaType(),
+			Id:         schemaId,
+			Title:      t.Name,
+			Type:       "object",
+			Properties: properties,
+		}
+		schemas = append(schemas, schema)
+	}
+	return schemas, nil
 }
 
 func (r *Request) FormatSchema(schema interface{}) ([]byte, error) {
@@ -127,7 +180,10 @@ func (r *Request) FormatSchema(schema interface{}) ([]byte, error) {
 }
 
 func (r *Request) HandleStandardOutput(tables []*TableProperties) error {
-	doc := MakeDefinitionsDoc(tables)
+	doc, err := r.MakeDefinitionsDoc(tables)
+	if err != nil {
+		return err
+	}
 	res, err := r.FormatSchema(doc)
 	if err != nil {
 		return err
@@ -141,7 +197,10 @@ func (r *Request) HandleDirectoryOutput(tables []*TableProperties) error {
 	if err != nil {
 		return err
 	}
-	schemas := MakeSchemas(tables)
+	schemas, err := r.MakeSchemas(tables)
+	if err != nil {
+		return err
+	}
 	for _, s := range schemas {
 		res, err := r.FormatSchema(s)
 		if err != nil {

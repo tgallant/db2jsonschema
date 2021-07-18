@@ -55,7 +55,47 @@ func TestMakeDefinitionsDoc(t *testing.T) {
 	table := makeDbTable()
 	p := MakeTableProperties(table)
 	props = append(props, p)
-	doc := MakeDefinitionsDoc(props)
+	r := &Request{}
+	doc, err := r.MakeDefinitionsDoc(props)
+	assert.Nilf(t, err, "creating the definitions doc for %s should succeed", table.Name)
+	assert.Equal(t, 1, len(doc.Definitions), "should have 1 definition")
+	def := doc.Definitions["Testing"]
+	assert.Equal(t, 2, len(def), "should have 2 properties")
+	property := def["UserId"]
+	assert.Equal(t, "number", property.Type, "type should be `number`")
+}
+
+func TestMakeDefinitionsDocWithIdTemplate(t *testing.T) {
+	var props []*TableProperties
+	table := makeDbTable()
+	p := MakeTableProperties(table)
+	props = append(props, p)
+	idValue := "https://example.com/schemas/test.json"
+	r := &Request{
+		IdTemplate: idValue,
+	}
+	doc, err := r.MakeDefinitionsDoc(props)
+	assert.Nilf(t, err, "creating the definitions doc for %s should succeed", table.Name)
+	assert.Equalf(t, idValue, doc.Id, "the $id value should be %s", idValue)
+	assert.Equal(t, 1, len(doc.Definitions), "should have 1 definition")
+	def := doc.Definitions["Testing"]
+	assert.Equal(t, 2, len(def), "should have 2 properties")
+	property := def["UserId"]
+	assert.Equal(t, "number", property.Type, "type should be `number`")
+}
+
+func TestMakeDefinitionsDocWithSchemaType(t *testing.T) {
+	var props []*TableProperties
+	table := makeDbTable()
+	p := MakeTableProperties(table)
+	props = append(props, p)
+	schemaValue := "https://example.com/schema"
+	r := &Request{
+		SchemaType: schemaValue,
+	}
+	doc, err := r.MakeDefinitionsDoc(props)
+	assert.Nilf(t, err, "creating the definitions doc for %s should succeed", table.Name)
+	assert.Equalf(t, schemaValue, doc.Schema, "the $schema value should be %s", schemaValue)
 	assert.Equal(t, 1, len(doc.Definitions), "should have 1 definition")
 	def := doc.Definitions["Testing"]
 	assert.Equal(t, 2, len(def), "should have 2 properties")
