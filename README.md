@@ -166,13 +166,13 @@ There are drivers for connecting to different database backends.
 To build a binary do the following.
 
 ```bash
-go build -o db2jsonschema cmd/db2jsonschema/main.go
+make build
 ```
 
 To build and run a command do the following.
 
 ```bash
-go run cmd/db2jsonschema/main.go --driver sqlite3 --dburl ./test.db --format yaml
+./run.sh --driver sqlite3 --dburl ./test.db --format yaml
 ```
 
 ### Test
@@ -180,5 +180,5 @@ go run cmd/db2jsonschema/main.go --driver sqlite3 --dburl ./test.db --format yam
 To run the tests do the following.
 
 ```bash
-go test -v ./...
+make test
 ```
