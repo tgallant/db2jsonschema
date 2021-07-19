@@ -43,26 +43,11 @@ type SQLiteConstraint struct {
 
 var (
 	typesMap = map[string]*schema.FieldType{
-		"int": &schema.FieldType{
-			Name:   "number",
-			Format: "",
-		},
-		"integer": &schema.FieldType{
-			Name:   "number",
-			Format: "",
-		},
-		"varchar": &schema.FieldType{
-			Name:   "string",
-			Format: "",
-		},
-		"text": &schema.FieldType{
-			Name:   "string",
-			Format: "",
-		},
-		"datetime": &schema.FieldType{
-			Name:   "string",
-			Format: "date-time",
-		},
+		"int":      {Name: "number", Format: ""},
+		"integer":  {Name: "number", Format: ""},
+		"varchar":  {Name: "string", Format: ""},
+		"text":     {Name: "string", Format: ""},
+		"datetime": {Name: "string", Format: "date-time"},
 	}
 
 	sqlLexer = lexer.Must(stateful.NewSimple([]stateful.Rule{
