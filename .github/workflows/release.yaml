@@ -6,10 +6,46 @@ on:
       - "v*.*.*"
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
     - uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  build-matrix:
+    needs: release
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        goos: [linux, darwin]
+        goarch: [amd64]
+    steps:
+    - uses: actions/checkout@v2
+    - uses: wangyoucao577/go-release-action@v1.18
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        goos: ${{ matrix.goos }}
+        goarch: ${{ matrix.goarch }}
+        build_command: make build
+  docker_push:
+    needs: release
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Set IMAGE_TAG
+      run: echo "IMAGE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+    - name: Login to DockerHub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Build and push
+      id: docker_build
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: |
+          tgallant/db2jsonschema:${{ env.IMAGE_TAG }}
+          tgallant/db2jsonschema:latest
+    - name: Image digest
+      run: echo ${{ steps.docker_build.outputs.digest }}
