@@ -10,7 +10,7 @@ require (
 	github.com/spf13/cobra v1.1.3
 	github.com/spf13/viper v1.8.0
 	github.com/stretchr/testify v1.7.0
-	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gorm.io/driver/sqlite v1.1.4 // indirect
-	gorm.io/gorm v1.21.12 // indirect
+	gopkg.in/yaml.v2 v2.4.0
+	gorm.io/driver/sqlite v1.1.4
+	gorm.io/gorm v1.21.12
 )
