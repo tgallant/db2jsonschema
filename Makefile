@@ -4,7 +4,7 @@ MAIN_PATH=cmd/db2jsonschema/main.go
 .PHONY: build test clean
 
 build:
-	go build -o ${BINARY_NAME} ${MAIN_PATH}
+	go build -v -o ${BINARY_NAME} ${MAIN_PATH}
 
 test:
 	go test -v ./...
