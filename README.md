@@ -22,17 +22,36 @@ all of the table definitions.
 db2jsonschema --driver sqlite3 --dburl ./exotic_birds.db
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.com/birds.schema.json",
-  "title": "Birds",
+  "$id": "definitions.json",
+  "title": "Definitions",
   "definitions": {
-    "Example": {
+    "birds": {
+      "created_at": {
+        "name": "created_at",
+        "type": "string",
+        "format": "date-time"
+      },
+      "deleted_at": {
+        "name": "deleted_at",
+        "type": "string",
+        "format": "date-time"
+      },
       "id": {
         "name": "id",
         "type": "number"
       },
-      "name": {
-        "name": "name",
+      "genus": {
+        "name": "genus",
         "type": "string"
+      },
+      "species": {
+        "name": "species",
+        "type": "string"
+      },
+      "updated_at": {
+        "name": "updated_at",
+        "type": "string",
+        "format": "date-time"
       }
     }
   }
@@ -51,16 +70,31 @@ The output format can be changed to yaml by passing the `--format` option.
 ```bash
 db2jsonschema --driver sqlite3 --dburl ./exotic_birds.db --format yaml
 $schema: https://json-schema.org/draft/2020-12/schema
-$id: https://example.com/birds.schema.json
-title: Birds
-type: object
-properties:
-  id:
-    name: id
-    type: number
-  name:
-    name: name
-    type: string
+$id: birds.yaml
+title: Definitions
+definitions:
+  birds:
+    created_at:
+      name: created_at
+      type: string
+      format: date-time
+    deleted_at:
+      name: deleted_at
+      type: string
+      format: date-time
+    id:
+      name: id
+      type: number
+    genus:
+      name: genus
+      type: string
+    species:
+      name: species
+      type: string
+    updated_at:
+      name: updated_at
+      type: string
+      format: date-time
 ```
 
 Instead of outputting a single document to standard out it is also possible to
@@ -87,7 +121,7 @@ tables will be used for schema generation.
 db2jsonschema \
   --driver sqlite3 \
   --dburl ./exotic_birds.db \
-  --include Birds
+  --include birds
   --format yaml \
   --outdir ./schemas
 ```
@@ -99,7 +133,7 @@ separated list or use multiple flags, one for each value.
 db2jsonschema \
   --driver sqlite3 \
   --dburl ./exotic_birds.db \
-  --exclude Locations,BirdWatchers
+  --exclude locations,bird_watchers \
   --format yaml \
   --outdir ./schemas
 ```
@@ -108,8 +142,8 @@ db2jsonschema \
 db2jsonschema \
   --driver sqlite3 \
   --dburl ./exotic_birds.db \
-  --exclude Locations
-  --exclude BirdWatchers
+  --exclude locations \
+  --exclude bird_watchers \
   --format yaml \
   --outdir ./schemas
 ```
@@ -125,7 +159,7 @@ db2jsonschema \
   --driver sqlite3 \
   --dburl ./exotic_birds.db \
   --schematype https://json-schema.org/draft/2020-12/schema \
-  --idtemplate https://example.com/schemas/{{ .Name }}.{{ .Format }}
+  --idtemplate https://example.com/schemas/{{ .Name }}.{{ .Format }} \
   --format yaml \
   --outdir ./schemas
 ```

@@ -99,7 +99,7 @@ func (r *Request) MakeDefinitionsDoc(tables []*schema.TableProperties) (*schema.
 	doc := &schema.DefinitionsDocument{
 		Schema:      r.GetSchemaType(),
 		Id:          schemaId,
-		Title:       "Example",
+		Title:       "Definitions",
 		Definitions: definitions,
 	}
 	return doc, nil
