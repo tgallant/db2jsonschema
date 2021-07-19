@@ -1,12 +1,17 @@
 # db2jsonschema
 
-![test](https://github.com/tgallant/db2jsonschema/actions/workflows/test.yaml/badge.svg?branch=main)
-
-![golangci](https://github.com/tgallant/db2jsonschema/actions/workflows/lint.yaml/badge.svg?branch=main)
-
-![shellcheck](https://github.com/tgallant/db2jsonschema/actions/workflows/shellcheck.yaml/badge.svg?branch=main)
+![test](https://github.com/tgallant/db2jsonschema/actions/workflows/test.yaml/badge.svg?branch=main) ![golangci](https://github.com/tgallant/db2jsonschema/actions/workflows/lint.yaml/badge.svg?branch=main) ![shellcheck](https://github.com/tgallant/db2jsonschema/actions/workflows/shellcheck.yaml/badge.svg?branch=main)
 
 A utility for generating JSON Schema definitions from database tables.
+
+## Installation
+
+Head to the [releases page](https://github.com/tgallant/db2jsonschema/releases)
+to download binaries for your system.
+
+Check the [DockerHub
+page](https://hub.docker.com/repository/docker/tgallant/db2jsonschema) to make
+use of `db2jsonschema` as a docker image.
 
 ## Usage
 
