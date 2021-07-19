@@ -222,3 +222,15 @@ To run the tests do the following.
 ```bash
 make test
 ```
+
+To run all of the checks do the following.
+
+```bash
+make test_all
+```
+
+To run all of the checks inside of a containerized linux environment do the following.
+
+```bash
+make ci
+```
