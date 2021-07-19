@@ -40,6 +40,9 @@ run_actions:
 
 actions: build_ci_image run_actions
 
+release:
+	./scripts/release.sh $(SEMVER)
+
 clean:
 	go clean
 	rm ${BINARY_NAME}

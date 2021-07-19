@@ -240,3 +240,11 @@ To run all of the github actions locally do the following (requires https://gith
 ```bash
 make actions
 ```
+
+To make a new release perform the following.
+
+```bash
+# possible options for SEMVER are:
+# major, minor, patch, premajor, preminor, prepatch, or prerelease
+make release SEMVER=patch
+```
