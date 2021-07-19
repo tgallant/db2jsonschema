@@ -9,6 +9,9 @@ build:
 test:
 	go test -v ./...
 
+local_ci:
+	./local_ci.sh
+
 clean:
 	go clean
 	rm ${BINARY_NAME}
