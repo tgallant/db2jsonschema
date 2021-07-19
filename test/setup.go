@@ -35,8 +35,8 @@ type Track struct {
 	Genre    Genre
 }
 
-func MigrateTables(db *gorm.DB) {
-	db.AutoMigrate(
+func MigrateTables(db *gorm.DB) error {
+	return db.AutoMigrate(
 		&Genre{},
 		&Artist{},
 		&Album{},
@@ -71,6 +71,5 @@ func (t *TestDB) Setup() error {
 	if err != nil {
 		return err
 	}
-	MigrateTables(db)
-	return nil
+	return MigrateTables(db)
 }

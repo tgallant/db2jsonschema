@@ -35,25 +35,31 @@ func TestMain(m *testing.M) {
 	fmt.Println(tempDir)
 	if err != nil {
 		fmt.Println(err)
+		os.Exit(1)
 		return
 	}
 	tempDir = newTestDir
 	tempFile, err := os.CreateTemp(tempDir, "test.*.db")
 	if err != nil {
 		fmt.Println(err)
+		os.Exit(1)
 		return
 	}
 	testDB.DataSource = tempFile.Name()
 	err = testDB.Setup()
 	if err != nil {
 		fmt.Println(err)
+		os.Exit(1)
 		return
 	}
 	m.Run()
 	err = os.RemoveAll(tempDir)
 	if err != nil {
 		fmt.Println(err)
+		os.Exit(1)
+		return
 	}
+	os.Exit(0)
 }
 
 func TestYAMLOutput(t *testing.T) {

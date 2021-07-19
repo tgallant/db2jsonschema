@@ -46,7 +46,12 @@ var (
 
 func HandleGenerate(cmd *cobra.Command, args []string) {
 	if len(driver) == 0 || len(dburl) == 0 {
-		cmd.Help()
+		err := cmd.Help()
+		if err != nil {
+			log.Error(err)
+			os.Exit(1)
+			return
+		}
 		return
 	}
 	req := &db2jsonschema.Request{

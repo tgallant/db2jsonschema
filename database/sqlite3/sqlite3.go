@@ -21,24 +21,24 @@ type SQLiteTable struct {
 }
 
 type SQLiteCreateTable struct {
-	TableName        string                   `"CREATE" "TABLE" @Ident`
-	FieldExpressions []*SQLiteFieldExpression `( "(" @@ ( "," @@ )* ( "," )?`
-	PrimaryKeys      []string                 `( "PRIMARY" "KEY" "(" @Ident ( "," @Ident )* ")" )* ( "," )? )?`
-	Constraints      []*SQLiteConstraint      `( "CONSTRAINT" @@ ( "," "CONSTRAINT" @@ )* )? ")"`
+	TableName        string                   `parser:"'CREATE' 'TABLE' @Ident"`
+	FieldExpressions []*SQLiteFieldExpression `parser:"( '(' @@ ( ',' @@ )* ( ',' )?"`
+	PrimaryKeys      []string                 `parser:"( 'PRIMARY' 'KEY' '(' @Ident ( ',' @Ident )* ')' )* ( ',' )? )?"`
+	Constraints      []*SQLiteConstraint      `parser:"( 'CONSTRAINT' @@ ( ',' 'CONSTRAINT' @@ )* )? ')'"`
 }
 
 type SQLiteFieldExpression struct {
-	Name          string `@Ident`
-	Type          string `@Ident ( "(" Number ")" )*`
-	NotNull       bool   `( @"NOT_NULL"`
-	AutoIncrement bool   `| @"AUTO_INCREMENT" )*`
+	Name          string `parser:"@Ident"`
+	Type          string `parser:"@Ident ( '(' Number ')' )*"`
+	NotNull       bool   `parser:"( @'NOT_NULL'"`
+	AutoIncrement bool   `parser:"| @'AUTO_INCREMENT' )*"`
 }
 
 type SQLiteConstraint struct {
-	Name            string `@Ident`
-	ForeignKey      string `"FOREIGN" "KEY" "(" @Ident ")"`
-	ReferencedTable string `"REFERENCES" @Ident`
-	ReferencedField string `"(" @Ident ")"`
+	Name            string `parser:"@Ident"`
+	ForeignKey      string `parser:"'FOREIGN' 'KEY' '(' @Ident ')'"`
+	ReferencedTable string `parser:"'REFERENCES' @Ident"`
+	ReferencedField string `parser:"'(' @Ident ')'"`
 }
 
 var (
@@ -66,13 +66,13 @@ var (
 	}
 
 	sqlLexer = lexer.Must(stateful.NewSimple([]stateful.Rule{
-		{`Keyword`, `(?i)\b(CREATE|TABLE|PRIMARY|FOREIGN|KEY|CONSTRAINT|REFERENCE)\b`, nil},
-		{`Ident`, `[a-zA-Z_][a-zA-Z0-9_]*`, nil},
-		{`Number`, `[-+]?\d*\.?\d+([eE][-+]?\d+)?`, nil},
-		{`String`, `'[^']*'|"[^"]*"`, nil},
-		{`Operators`, `<>|!=|<=|>=|[-+*/%,.()=<>]`, nil},
-		{"whitespace", `\s+`, nil},
-		{"backtick", "`", nil},
+		{Name: `Keyword`, Pattern: `(?i)\b(CREATE|TABLE|PRIMARY|FOREIGN|KEY|CONSTRAINT|REFERENCE)\b`, Action: nil},
+		{Name: `Ident`, Pattern: `[a-zA-Z_][a-zA-Z0-9_]*`, Action: nil},
+		{Name: `Number`, Pattern: `[-+]?\d*\.?\d+([eE][-+]?\d+)?`, Action: nil},
+		{Name: `String`, Pattern: `'[^']*'|"[^"]*"`, Action: nil},
+		{Name: `Operators`, Pattern: `<>|!=|<=|>=|[-+*/%,.()=<>]`, Action: nil},
+		{Name: "whitespace", Pattern: `\s+`, Action: nil},
+		{Name: "backtick", Pattern: "`", Action: nil},
 	}))
 
 	parser = participle.MustBuild(
@@ -100,7 +100,10 @@ func SelectTables(conn *sql.DB) ([]*SQLiteTable, error) {
 	for row.Next() {
 		var name string
 		var sql string
-		row.Scan(&name, &sql)
+		err = row.Scan(&name, &sql)
+		if err != nil {
+			return nil, err
+		}
 		table := SQLiteTable{name, sql}
 		tables = append(tables, &table)
 	}
