@@ -234,3 +234,9 @@ To run all of the checks inside of a containerized linux environment do the foll
 ```bash
 make ci
 ```
+
+To run all of the github actions locally do the following (requires https://github.com/nektos/act).
+
+```bash
+make actions
+```

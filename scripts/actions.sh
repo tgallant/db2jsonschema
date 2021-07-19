@@ -1,6 +1,6 @@
 #!/bin/sh
 
-BUILD_TAG=db2j_ci
+BUILD_TAG=${1-db2j_ci}
 
 act_exists() {
     type act > /dev/null 2> /dev/null
@@ -11,4 +11,4 @@ if ! act_exists; then
     exit 1
 fi
 
-act -P ubuntu-20.04=$BUILD_TAG
+act -P ubuntu-20.04="$BUILD_TAG"
