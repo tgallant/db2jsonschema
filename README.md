@@ -4,6 +4,8 @@
 
 ![golangci](https://github.com/tgallant/db2jsonschema/actions/workflows/lint.yaml/badge.svg?branch=main)
 
+![shellcheck](https://github.com/tgallant/db2jsonschema/actions/workflows/shellcheck.yaml/badge.svg?branch=main)
+
 A utility for generating JSON Schema definitions from database tables.
 
 ## Usage
