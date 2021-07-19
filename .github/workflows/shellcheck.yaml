@@ -1,7 +1,6 @@
 name: shellcheck
 
-on:
-  push:
+on: push
 
 jobs:
   shellcheck:
