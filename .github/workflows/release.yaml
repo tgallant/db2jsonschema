@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        goos: [linux, darwin, windows]
+        goos: [linux, darwin]
         goarch: [amd64]
     steps:
     - uses: actions/checkout@v2
@@ -28,9 +28,7 @@ jobs:
         goos: ${{ matrix.goos }}
         goarch: ${{ matrix.goarch }}
         pre_command: >-
-          apt update &&
-          apt install --no-install-recommends -y gcc-mingw-w64-x86-64 &&
-          export CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc
+          export CGO_ENABLED=1
         project_path: cmd/db2jsonschema
   docker_push:
     needs: release
