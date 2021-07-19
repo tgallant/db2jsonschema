@@ -27,6 +27,10 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         goos: ${{ matrix.goos }}
         goarch: ${{ matrix.goarch }}
+        pre_command: |
+          apt update && \
+          apt install --no-install-recommends -y gcc-mingw-w64-x86-64 && \
+          export CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc
         project_path: cmd/db2jsonschema
   docker_push:
     needs: release
