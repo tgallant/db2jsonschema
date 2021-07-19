@@ -1,5 +1,7 @@
 # db2jsonschema
 
+![test](https://github.com/tgallant/db2jsonschema/actions/workflows/test.yaml/badge.svg?branch=main)
+
 A utility for generating JSON Schema definitions from database tables.
 
 ## Usage
