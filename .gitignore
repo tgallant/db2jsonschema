@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+*.db
 db2jsonschema
 
 # Test binary, built with `go test -c`
