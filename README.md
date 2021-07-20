@@ -201,7 +201,7 @@ func main() {
 There are drivers for connecting to different database backends.
 
 - SQLite
-- MySQL (WIP)
+- MySQL
 - PostgreSQL(WIP)
 
 ## Contributing
@@ -234,19 +234,28 @@ To run all of the checks do the following.
 make test_all
 ```
 
-To run all of the checks inside of a containerized linux environment do the following.
+To run all of the checks inside of a containerized linux environment do the
+following.
 
 ```bash
 make ci
 ```
 
-To run all of the github actions locally do the following (requires https://github.com/nektos/act).
+To run all of the github actions locally do the following (requires
+https://github.com/nektos/act).
 
 ```bash
 make actions
 ```
 
-To make a new release perform the following.
+To start a local MySQL server run the following.
+
+```bash
+make mysql
+```
+
+To make a new release perform the following (requires
+https://docs.npmjs.com/cli/v6/using-npm/semver).
 
 ```bash
 # possible options for SEMVER are:
