@@ -21,43 +21,64 @@ type SQLiteTable struct {
 }
 
 type SQLiteCreateTable struct {
-	TableName        string                   `parser:"'CREATE' 'TABLE' @Ident"`
-	FieldExpressions []*SQLiteFieldExpression `parser:"( '(' @@ ( ',' @@ )* ( ',' )?"`
-	PrimaryKeys      []string                 `parser:"( 'PRIMARY' 'KEY' '(' @Ident ( ',' @Ident )* ')' )* ( ',' )? )?"`
-	Constraints      []*SQLiteConstraint      `parser:"( 'CONSTRAINT' @@ ( ',' 'CONSTRAINT' @@ )* )? ')'"`
+	TableName        string                   `parser:"'CREATE' 'TABLE' ( 'IF' 'NOT' 'EXISTS' )? @Ident"`
+	FieldExpressions []*SQLiteFieldExpression `parser:"'(' @@ ( ',' @@ )* ( ',' )?"`
+	PrimaryKeys      []string                 `parser:"( 'PRIMARY' 'KEY' '(' @Ident ( ',' @Ident )* ')' ( ',' )? )?"`
+	ForeignKeys      []*SQLiteForeignKey      `parser:"( 'FOREIGN' 'KEY' @@ ( ',' 'FOREIGN' 'KEY' @@ )* ( ',' )? )?"`
+	Constraints      []*SQLiteConstraint      `parser:"( 'CONSTRAINT' @@ ( ',' 'CONSTRAINT' @@ )* ( ',' )? )?"`
+	Checks           []*SQLiteCheck           `parser:"( 'CHECK' '(' @@ ')' ( ',' 'CHECK' '(' @@ ')' )* )? ')'"`
 }
 
 type SQLiteFieldExpression struct {
 	Name          string `parser:"@Ident"`
-	Type          string `parser:"@Ident ( '(' Number ')' )*"`
-	NotNull       bool   `parser:"( @'NOT_NULL'"`
+	Type          string `parser:"@Ident"`
+	Limit         string `parser:"( '(' Number ')' )?"`
+	NotNull       bool   `parser:"( @'NOT' 'NULL' | @'NOT_NULL'"`
+	Default       string `parser:"| 'DEFAULT' '(' @Ident ')'"`
 	AutoIncrement bool   `parser:"| @'AUTO_INCREMENT' )*"`
+}
+
+type SQLiteForeignKey struct {
+	ForeignKey      string `parser:"'(' @Ident ')'"`
+	ReferencedTable string `parser:"'REFERENCES' @Ident"`
+	ReferencedField string `parser:"'(' @Ident ')'"`
+}
+
+type SQLiteCheck struct {
+	Name   string `parser:"@Ident"`
+	Values []int  `parser:"'IN' '(' @Number ',' @Number ')'"`
 }
 
 type SQLiteConstraint struct {
 	Name            string `parser:"@Ident"`
-	ForeignKey      string `parser:"'FOREIGN' 'KEY' '(' @Ident ')'"`
-	ReferencedTable string `parser:"'REFERENCES' @Ident"`
-	ReferencedField string `parser:"'(' @Ident ')'"`
+	Key             string `parser:"('FOREIGN' | 'PRIMARY') 'KEY' '(' @Ident ')'"`
+	ReferencedTable string `parser:"('REFERENCES' @Ident)?"`
+	ReferencedField string `parser:"('(' @Ident ')')?"`
 }
 
 var (
 	typesMap = map[string]*schema.FieldType{
 		"int":      {Name: "number", Format: ""},
+		"INTEGER":  {Name: "number", Format: ""},
 		"integer":  {Name: "number", Format: ""},
 		"varchar":  {Name: "string", Format: ""},
+		"VARCHAR":  {Name: "string", Format: ""},
 		"text":     {Name: "string", Format: ""},
+		"boolean":  {Name: "boolean", Format: ""},
+		"BOOLEAN":  {Name: "boolean", Format: ""},
 		"datetime": {Name: "string", Format: "date-time"},
+		"DATETIME": {Name: "string", Format: "date-time"},
 	}
 
 	sqlLexer = lexer.Must(stateful.NewSimple([]stateful.Rule{
-		{Name: `Keyword`, Pattern: `(?i)\b(CREATE|TABLE|PRIMARY|FOREIGN|KEY|CONSTRAINT|REFERENCE)\b`, Action: nil},
+		{Name: `Keyword`, Pattern: `(?i)\b(CREATE|TABLE|PRIMARY|FOREIGN|KEY|CONSTRAINT|REFERENCE|CHECK|IN)\b`, Action: nil},
 		{Name: `Ident`, Pattern: `[a-zA-Z_][a-zA-Z0-9_]*`, Action: nil},
 		{Name: `Number`, Pattern: `[-+]?\d*\.?\d+([eE][-+]?\d+)?`, Action: nil},
-		{Name: `String`, Pattern: `'[^']*'|"[^"]*"`, Action: nil},
+		{Name: `String`, Pattern: `'[^']*'`, Action: nil},
 		{Name: `Operators`, Pattern: `<>|!=|<=|>=|[-+*/%,.()=<>]`, Action: nil},
 		{Name: "whitespace", Pattern: `\s+`, Action: nil},
 		{Name: "backtick", Pattern: "`", Action: nil},
+		{Name: "quote", Pattern: `"`, Action: nil},
 	}))
 
 	parser = participle.MustBuild(
