@@ -27,6 +27,9 @@ ci: build_ci_image run_ci_image
 test:
 	go test -v ./...
 
+mysql:
+	./scripts/start_mysql.sh
+
 lint: deps
 	./scripts/lint.sh
 

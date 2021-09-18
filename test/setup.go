@@ -3,6 +3,7 @@ package test
 import (
 	"fmt"
 
+	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -52,6 +53,14 @@ func SetupSQLite(datasource string) (*gorm.DB, error) {
 	return db, nil
 }
 
+func SetupMySQL(datasource string) (*gorm.DB, error) {
+	db, err := gorm.Open(mysql.Open(datasource), &gorm.Config{})
+	if err != nil {
+		return &gorm.DB{}, err
+	}
+	return db, nil
+}
+
 type TestDB struct {
 	Driver     string
 	DataSource string
@@ -61,6 +70,8 @@ func (t *TestDB) NewConnection() (*gorm.DB, error) {
 	switch t.Driver {
 	case "sqlite3":
 		return SetupSQLite(t.DataSource)
+	case "mysql":
+		return SetupMySQL(t.DataSource)
 	default:
 		return nil, fmt.Errorf("Unknown driver: %s", t.Driver)
 	}

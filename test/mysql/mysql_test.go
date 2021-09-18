@@ -1,4 +1,4 @@
-package sqlite3_test
+package mysql_test
 
 import (
 	"encoding/json"
@@ -18,8 +18,8 @@ import (
 var tempDir string
 
 var testDB = &test.TestDB{
-	Driver:     "sqlite3",
-	DataSource: "",
+	Driver:     "mysql",
+	DataSource: "root:root@tcp(127.0.0.1:3306)/testing",
 }
 
 var expectedTables = map[string]bool{
@@ -31,6 +31,10 @@ var expectedTables = map[string]bool{
 }
 
 func TestMain(m *testing.M) {
+	dbUrl, ok := os.LookupEnv("DB_URL")
+	if ok {
+		testDB.DataSource = dbUrl
+	}
 	newTestDir, err := os.MkdirTemp(os.TempDir(), "db2jsonschema*")
 	if err != nil {
 		fmt.Println(err)
@@ -38,13 +42,6 @@ func TestMain(m *testing.M) {
 		return
 	}
 	tempDir = newTestDir
-	tempFile, err := os.CreateTemp(tempDir, "test.*.db")
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-		return
-	}
-	testDB.DataSource = tempFile.Name()
 	err = testDB.Setup()
 	if err != nil {
 		fmt.Println(err)

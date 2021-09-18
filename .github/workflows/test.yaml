@@ -8,9 +8,25 @@ on:
 jobs:
   test:
     runs-on: ubuntu-20.04
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: testing
+        ports:
+          - 3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-go@v2
       with:
         go-version: "1.16.6"
     - run: make test
+      env:
+        DB_URL: >-
+          root:root@tcp(127.0.0.1:${{ job.services.mysql.ports[3306] }})/testing
