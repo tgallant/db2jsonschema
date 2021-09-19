@@ -66,6 +66,7 @@ var (
 		"text":     {Name: "string", Format: ""},
 		"boolean":  {Name: "boolean", Format: ""},
 		"BOOLEAN":  {Name: "boolean", Format: ""},
+		"numeric":  {Name: "boolean", Format: ""},
 		"datetime": {Name: "string", Format: "date-time"},
 		"DATETIME": {Name: "string", Format: "date-time"},
 	}

@@ -23,7 +23,8 @@ type Artist struct {
 
 type Album struct {
 	gorm.Model
-	Title string
+	Title    string
+	Released bool
 }
 
 type Track struct {

@@ -17,6 +17,7 @@ var (
 		"bigint unsigned": {Name: "number", Format: ""},
 		"longtext":        {Name: "string", Format: ""},
 		"datetime(3)":     {Name: "string", Format: "date-time"},
+		"tinyint(1)":      {Name: "boolean", Format: ""},
 	}
 )
 
